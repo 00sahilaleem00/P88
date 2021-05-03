@@ -33,6 +33,8 @@ export default class ExchangeScreen extends Component {
       showFlatList: false,
       dataSource: "",
       itemStatus: "",
+      currency: "",
+      itemValue: "",
     };
   }
 
@@ -67,6 +69,7 @@ export default class ExchangeScreen extends Component {
         snapshot.forEach((doc) => {
           this.setState({
             isItemExchangeActive: doc.data().Is_Item_Exchange_Active,
+            currency: doc.data().Currency,
           });
         });
       });
@@ -79,10 +82,10 @@ export default class ExchangeScreen extends Component {
 
   addItem = async () => {
     var randomRequestID = this.createUniqueID();
-    console.log(randomRequestID);
     this.setState({
       exchangeID: randomRequestID,
     });
+    var value = await this.getData();
     db.collection("exchange_requests").add({
       Username: this.state.userID,
       Item_Name: this.state.itemName,
@@ -90,6 +93,7 @@ export default class ExchangeScreen extends Component {
       Exchange_ID: randomRequestID,
       Date: firebase.firestore.FieldValue.serverTimestamp(),
       Item_Status: "Requested",
+      Item_Value: value,
     });
     await this.getItemExchange();
     db.collection("users")
@@ -99,9 +103,9 @@ export default class ExchangeScreen extends Component {
         snapshot.forEach((doc) => {
           db.collection("users")
             .doc(doc.id)
-            .update({ Is_Item_Exchange_Active: true });
+            .update({ Is_Item_Exchange_Active: "true" });
         });
-        this.setState({ isItemExchangeActive: true });
+        this.setState({ isItemExchangeActive: "true" });
       });
     this.setState({
       itemName: "",
@@ -161,15 +165,34 @@ export default class ExchangeScreen extends Component {
       .then((snapshot) => {
         snapshot.forEach((doc) => {
           db.collection("users").doc(doc.id).update({
-            Is_Item_Exchange_Active: false,
+            Is_Item_Exchange_Active: "false",
           });
         });
-        this.setState({ isItemExchangeActive: false });
+        this.setState({ isItemExchangeActive: "false" });
       });
   };
 
+  getData = async () => {
+    var value;
+    await fetch(
+      "http://data.fixer.io/api/latest?access_key=2a88a47606fbf5c6833e55deafbd1822"
+    )
+      .then((response) => {
+        return response.json();
+      })
+      .then((responseData) => {
+        var currencyCode = this.state.currency;
+        var userCurrencyRate = responseData.rates[currencyCode];
+        value = (this.state.itemValue / userCurrencyRate).toString();
+        this.setState({
+          itemValue: value,
+        });
+      });
+    return value;
+  };
+
   render() {
-    if (this.state.isItemExchangeActive === true) {
+    if (this.state.isItemExchangeActive === "true") {
       return (
         <View style={{ flex: 1, justifyContent: "center" }}>
           <View
@@ -195,6 +218,18 @@ export default class ExchangeScreen extends Component {
           >
             <Text>Item Status</Text>
             <Text>{this.state.itemStatus}</Text>
+          </View>
+          <View
+            style={{
+              borderColor: "blue",
+              borderWidth: 2,
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 10,
+            }}
+          >
+            <Text>Item Value</Text>
+            <Text>{this.state.itemValue}</Text>
           </View>
           <TouchableOpacity
             style={{
@@ -235,6 +270,18 @@ export default class ExchangeScreen extends Component {
               onChangeText={(text) => {
                 this.setState({
                   itemDescription: text,
+                });
+              }}
+            />
+            <TextInput
+              style={styles.formTextInput}
+              placeholder="Enter Item Price"
+              value={this.state.itemValue}
+              multiline
+              numberOfLines={10}
+              onChangeText={(text) => {
+                this.setState({
+                  itemValue: text,
                 });
               }}
             />

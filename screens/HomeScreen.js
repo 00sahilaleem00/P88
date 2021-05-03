@@ -53,6 +53,7 @@ export default class HomeScreen extends Component {
       <ListItem.Content>
         <ListItem.Title>{item.Item_Name}</ListItem.Title>
         <ListItem.Subtitle>{item.Item_Description}</ListItem.Subtitle>
+        <ListItem.Subtitle>{item.Item_Value + " Euros"}</ListItem.Subtitle>
         <TouchableOpacity
           style={styles.button}
           onPress={() => {

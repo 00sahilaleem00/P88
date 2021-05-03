@@ -26,6 +26,7 @@ export default class SignUpLoginScreen extends Component {
       last_name: "",
       address: "",
       mobile_number: "",
+      currency: "",
       isModalVisible: false,
     };
   }
@@ -44,6 +45,8 @@ export default class SignUpLoginScreen extends Component {
             Last_Name: this.state.last_name,
             Mobile_Number: this.state.mobile_number,
             Username: this.state.email,
+            Currency: this.state.currency,
+            Is_Item_Exchange_Active: "false",
           });
           return Alert.alert("User Added Successfully", "", [
             {
@@ -152,6 +155,15 @@ export default class SignUpLoginScreen extends Component {
             onChangeText={(text) => {
               this.setState({
                 mobile_number: text,
+              });
+            }}
+          />
+          <TextInput
+            style={styles.inputBox}
+            placeholder={"Currency"}
+            onChangeText={(text) => {
+              this.setState({
+                currency: text,
               });
             }}
           />
